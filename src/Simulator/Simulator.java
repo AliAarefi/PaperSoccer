@@ -8,6 +8,6 @@ public class Simulator {
     }
 
     public void setEnvironment(Environment e) {
-        this.environment = e;
+        environment = e;
     }
 }
