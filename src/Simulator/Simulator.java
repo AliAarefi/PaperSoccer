@@ -7,20 +7,20 @@ import common.Watchable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 class Simulator {
 	private Logger log = new Logger("simulator");
 	private ServerSocket server;
 	private Environment environment;
-	private HashMap<UUID, Agent> agents;
+	private ConcurrentHashMap<UUID, Agent> agents;
 	private UUID players[];
 	private Watchable<Boolean> gameReady;
 
 	Simulator(int n) {
-		agents = new HashMap<>();
+		agents = new ConcurrentHashMap<>();
 		players = new UUID[n];
 
 		gameReady = new Watchable<>();
