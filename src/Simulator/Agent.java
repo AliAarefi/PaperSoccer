@@ -12,7 +12,7 @@ class Agent {
 	private Socket socket;
 	private PrintWriter pw;
 	private Scanner sc;
-	private String username;
+	String username;
 	private UUID id;
 	private boolean player = false;
 	int side;
@@ -32,6 +32,11 @@ class Agent {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void setPlayer(boolean player, int side) {
+		this.player = player;
+		this.side = side;
 	}
 
 	boolean isPlayer() {

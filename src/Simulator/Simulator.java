@@ -24,8 +24,7 @@ class Simulator {
 		agents = new ConcurrentHashMap<>();
 		players = new UUID[n];
 
-		gameReady = new Watchable<>();
-		gameReady.setValue(Boolean.FALSE);
+		gameReady = new Watchable<>(Boolean.FALSE);
 
 		while (true) {
 			try {
