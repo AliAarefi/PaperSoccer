@@ -1,7 +1,7 @@
 package common;
 
 public class ClientMessage {
-	public static String agent_authentication = "$2";
-	public static String agent_type = "$4";
-	public static String action_request = "$7";
+	public static final String agent_authentication = "C0";
+	public static final String agent_type = "C1";
+	public static final String action_request = "C2";
 }
