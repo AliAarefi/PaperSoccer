@@ -1,4 +1,4 @@
-package Simulator;
+package simulator;
 
 import common.Logger;
 import common.Strings;
@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.UUID;
 
 class Simulator {
-	private Logger log = new Logger("Simulator");
+	private Logger log = new Logger("simulator");
 	private ServerSocket server;
 	private Environment environment;
 	private HashMap<UUID, Agent> agents;
