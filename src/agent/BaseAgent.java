@@ -63,9 +63,6 @@ public abstract class BaseAgent {
 		new Thread(() -> {
 			this.observe();
 		}).start();
-		new Thread(() -> {
-			this.makeDecision();
-		}).start();
 	}
 
 	private void observe() {
@@ -77,7 +74,9 @@ public abstract class BaseAgent {
 				if (turn == "Finish")
 					break;
 				else if (turn == username) {
-
+					new Thread(() -> {
+						this.makeDecision();
+					}).start();
 				}
 			}
 		}
