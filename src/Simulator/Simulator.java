@@ -2,6 +2,7 @@ package Simulator;
 
 import common.Logger;
 import common.Strings;
+import common.Watchable;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -16,11 +17,14 @@ class Simulator {
 	private Environment environment;
 	private HashMap<UUID, Agent> agents;
 	private UUID players[];
-	private boolean gameReady = false;
+	private Watchable<Boolean> gameReady;
 
 	Simulator(int n) {
 		agents = new HashMap<>();
 		players = new UUID[n];
+
+		gameReady = new Watchable<>();
+		gameReady.setValue(Boolean.FALSE);
 
 		while (true) {
 			try {
@@ -30,7 +34,7 @@ class Simulator {
 			}
 		}
 
-		while (!gameReady) {
+		while (!gameReady.getValue()) {
 			try {
 				Socket socket = server.accept();
 				new Thread(() -> {  // TODO Use thread pool
@@ -61,7 +65,7 @@ class Simulator {
 	private void checkGameReady() {
 		for (UUID id : players)
 			if (id == null) return;
-		gameReady = true;
+		gameReady.setValue(Boolean.TRUE);
 		log.d(1, "Game is ready!");
 	}
 
@@ -70,11 +74,13 @@ class Simulator {
 	}
 
 	private void start() {
-
+		environment.clear();
 	}
 
 	void startWhenReady() {
-
+		gameReady.setWatcher((obj, oldValue, newValue) -> {
+			if (newValue == Boolean.TRUE) start();
+		});
 	}
 
 	public static void main(String[] args) {
