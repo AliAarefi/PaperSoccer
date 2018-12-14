@@ -1,30 +1,30 @@
 package simulator;
 
 import common.Logger;
-import common.Strings;
 import common.Watchable;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 class Simulator {
 	private Logger log = new Logger("simulator");
 	private ServerSocket server;
 	private Environment environment;
-	private HashMap<UUID, Agent> agents;
+	private ConcurrentHashMap<UUID, Agent> agents;
 	private UUID players[];
 	private Watchable<Boolean> gameReady;
+	private boolean simulating = true;
+	private Thread messageHandler;
 
 	Simulator(int n) {
-		agents = new HashMap<>();
+		agents = new ConcurrentHashMap<>();
 		players = new UUID[n];
 
-		gameReady = new Watchable<>();
-		gameReady.setValue(Boolean.FALSE);
+		gameReady = new Watchable<>(Boolean.FALSE);
 
 		while (true) {
 			try {
@@ -34,7 +34,20 @@ class Simulator {
 			}
 		}
 
-		while (!gameReady.getValue()) {
+		messageHandler = new Thread(() -> {
+			try {
+				while (simulating) {
+					Message m = MessageQueue.getInstance().take();
+					log.d(2, String.format("New message received from agent %s", agents.get(m.id).username));
+					handle(m);
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		});
+		messageHandler.start();
+
+		while (simulating) {
 			try {
 				Socket socket = server.accept();
 				new Thread(() -> {  // TODO Use thread pool
@@ -43,16 +56,6 @@ class Simulator {
 						log.d(1, String.format("A new client has been connected. (%s)", id.toString()));
 						Agent agent = new Agent(socket, id);
 						agents.put(id, agent);
-
-						agent.initialize();
-						if (agent.isPlayer()) {
-							if (players[agent.side] == null) {
-								players[agent.side] = id;
-								log.d(1, String.format("Player %d is set.", agent.side));
-								checkGameReady();
-							} else
-								agent.send(Strings.error_players_full);  // FIXME Player is already set in the agent object
-						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -60,6 +63,15 @@ class Simulator {
 			} catch (IOException ignored) {
 			}
 		}
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			log.d(1, "Shutting down the simulator...");
+			simulating = false;
+			try {
+				messageHandler.join();
+			} catch (InterruptedException ignored) {
+			}
+		}));
 	}
 
 	private void checkGameReady() {
@@ -81,6 +93,18 @@ class Simulator {
 		gameReady.setWatcher((obj, oldValue, newValue) -> {
 			if (newValue == Boolean.TRUE) start();
 		});
+	}
+
+	private void handle(Message m) {
+		Agent agent = agents.get(m.id);
+//		if (agent.isPlayer()) {
+//			if (players[agent.side] == null) {
+//				players[agent.side] = m.id;
+//				log.d(1, String.format("Player %d is set.", agent.side));
+//				checkGameReady();
+//			} else
+//				agent.send(Strings.error_players_full);  // FIXME Player is already set in the agent object
+//		}
 	}
 
 	public static void main(String[] args) {
