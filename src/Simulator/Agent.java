@@ -31,7 +31,7 @@ class Agent {
 		String[] type = receive().split(" ");
 		if (type[0].equals("player")) {
 			player = true;  // FIXME Must not set the player before checking with the simulator
-			side = type[1].equals("1") ? 1 : 2;
+			side = Integer.parseInt(type[1]) - 1;
 		}
 	}
 
