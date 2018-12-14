@@ -63,6 +63,15 @@ class Simulator {
 			} catch (IOException ignored) {
 			}
 		}
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			log.d(1, "Shutting down the simulator...");
+			simulating = false;
+			try {
+				messageHandler.join();
+			} catch (InterruptedException ignored) {
+			}
+		}));
 	}
 
 	private void checkGameReady() {
