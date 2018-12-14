@@ -2,6 +2,8 @@ package simulator;
 
 import common.Logger;
 import common.Watchable;
+import common.ServerMessage;
+import common.ClientMessage;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -11,7 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 class Simulator {
-	private Logger log = new Logger("simulator");
+	private Logger log = new Logger("Simulator");
 	private ServerSocket server;
 	private Environment environment;
 	private ConcurrentHashMap<UUID, Agent> agents;
@@ -97,14 +99,26 @@ class Simulator {
 
 	private void handle(Message m) {
 		Agent agent = agents.get(m.id);
-//		if (agent.isPlayer()) {
-//			if (players[agent.side] == null) {
-//				players[agent.side] = m.id;
-//				log.d(1, String.format("Player %d is set.", agent.side));
-//				checkGameReady();
-//			} else
-//				agent.send(Strings.error_players_full);  // FIXME Player is already set in the agent object
-//		}
+		String[] message = m.message.split(" ");
+		switch (message[0]) {
+			case ClientMessage.agent_authentication:
+				if (message.length == 2)
+					agent.username = message[1];
+				break;
+			case ClientMessage.agent_type:
+				if (message.length == 3) {
+					if (message[1].equals("player")) {
+						int side = Integer.parseInt(message[2]);
+						if (players[side] == null) {
+							agent.setPlayer(true, side);
+							log.d(1, String.format("Player %d is set.", agent.side));
+							checkGameReady();
+						} else
+							agent.send(ServerMessage.error_players_full);
+					}
+				}
+				break;
+		}
 	}
 
 	public static void main(String[] args) {
