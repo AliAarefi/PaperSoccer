@@ -4,7 +4,9 @@ public class Watchable<T> {
 	private Watcher<T> watcher;
 	private T value;
 
-	public Watchable() {}
+	public Watchable(T initial) {
+		this.value = initial;
+	}
 
 	public void setWatcher(Watcher<T> watcher) {
 		this.watcher = watcher;
