@@ -1,0 +1,43 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #dde;
+}
+
+header {
+    text-align: center;
+    display: table;
+    background-color: #bbf;
+    height: 10vh;
+    width: 100vw;
+}
+
+#container {
+    height: 80vh;
+    width: 100vw;
+    background-color: #eee;
+}
+
+#canvas-container {
+    display: block;
+    position: absolute;
+    left: 25vw;
+    top: 10vh;
+    width: 50vw;
+    height: 80vh;
+    background-color: #eee;
+}
+
+footer {
+    padding: 10px;
+    position: absolute;
+    top: 90vh;
+    height: 10vh;
+    width: 100vw;
+    background-color: #bbf;
+}
