@@ -1,3 +1,3 @@
 ## Graphical Agent
 
-This package is the implementation of the agent with graphical user interface.
+This package is the implementation of the agents with graphical user interface.
