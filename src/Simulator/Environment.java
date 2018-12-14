@@ -19,7 +19,7 @@ public class Environment {
 		finished = false;
 		board = new int[width * height][width * height];
 
-		// filling edges in adjacency matrix, exploration based on upper triangular matrix
+		// filling board edges in adjacency matrix, exploration based on upper triangular matrix but filling all cells
 		for (int i = 0; i < width * height; i++)
 			for (int j = i; j < width * height; j++) {
 				if (j - i == width && i % width == 0) {  // left edge
