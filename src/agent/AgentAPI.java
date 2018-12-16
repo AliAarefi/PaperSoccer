@@ -14,95 +14,72 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class AgentAPI {
-	Socket socket;
+	private Socket socket;
 	private PrintWriter pw;
 	private Scanner sc;
 	private String username;
 	private boolean player = false;
-	int side;
-	int board[][];
+	public int side;
+	public int board[][];
 	private Watchable<GameState> gameState;
 
-	AgentAPI(Watcher<GameState> w) throws IOException {
+	public AgentAPI(Watcher<GameState> w) throws IOException {
 		socket = new Socket("localhost", 10000);
 		pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
 		sc = new Scanner(socket.getInputStream());
 
 		gameState = new Watchable<>(GameState.GAME_PREPARING);
 		gameState.setWatcher(w);
-
-		authentication();
 	}
 
-	void authentication() {
-		do {
-//			setUsername();
-			send(ClientMessage.agent_authentication);
-			send(username);
-		} while (receive() == ServerMessage.authentication_approval);
+	private void send(String s) {
+		pw.println(s);
 	}
 
-	boolean changeAgentType() {
+	private String receive() {
+		return sc.nextLine();
+	}
+
+	private boolean setUsername(String username) {
+		send(username);
+		if (Objects.equals(receive(), ServerMessage.authentication_approved)) {
+			this.username = username;
+			return true;
+		} else return false;
+
+	}
+
+	public boolean authenticate(String username) {
+		send(ClientMessage.agent_authentication);
+		return setUsername(username);
+	}
+
+	private void setPlayer(int side) {
+		this.player = true;
+		this.side = side;
+	}
+
+	public boolean isPlayer() {
+		return player;
+	}
+
+	private boolean changeAgentType(int side) {
 		String type;
 		if (isPlayer()) {
-			setSide();
+			setPlayer(side);
 			type = "player " + side;
 		} else
 			type = "observer";
 		send(ClientMessage.agent_type + " " + type);
-		if (receive() == ServerMessage.change_agent_type_approval)
-			return true;
-		return false;
+		return Objects.equals(receive(), ServerMessage.change_agent_type_approval);
 	}
 
-
-	// to set followings using UIs depends on agent types: ai / (textual/graphical) human / (textual/graphical) observer
-	void setUsername(String username) {
-		this.username = username;
+	public boolean joinGame() {
+		return true;  // TODO
 	}
 
-	void setPlayer(boolean palayer) {
-
-	}
-
-	void setSide() {
-
-	}
-
-	void joinGame() {
-
-	}
-
-	void leaveGame() {
-
-	}
-
-	void start() {
-		new Thread(() -> {
-			this.observe();
-		}).start();
-	}
-
-	private void observe() {
-		while (true) {
-			String serverBroadcast = receive();
-			if (Objects.equals(serverBroadcast, ServerMessage.world_broadcast)) {
-				board = boardParser(receive());
-			} else if (Objects.equals(serverBroadcast, ServerMessage.turn_broadcast)) {
-				String turn = receive();
-				if (Objects.equals(turn, ServerMessage.game_finished)) {
-					gameState.setValue(GameState.GAME_FINISHED);
-					break;
-				} else if (turn == username)
-					gameState.setValue(GameState.YOUR_TURN);
-				else
-					gameState.setValue(GameState.OTHERS_TURN);
-			}
-		}
-	}
-
-	void makeDecision() {
-
+	public boolean leaveGame() {
+		return true;  // TODO
 	}
 
 	private int[][] boardParser(String receive) {
@@ -116,16 +93,29 @@ public class AgentAPI {
 		return tmp;
 	}
 
-
-	boolean isPlayer() {
-		return player;
+	private void observe() {
+		while (true) {
+			String serverBroadcast = receive();
+			if (Objects.equals(serverBroadcast, ServerMessage.world_broadcast)) {
+				board = boardParser(receive());
+			} else if (Objects.equals(serverBroadcast, ServerMessage.turn_broadcast)) {
+				String turn = receive();
+				if (Objects.equals(turn, ServerMessage.game_finished)) {
+					gameState.setValue(GameState.GAME_FINISHED);
+					break;
+				} else if (Objects.equals(turn, username))
+					gameState.setValue(GameState.YOUR_TURN);
+				else
+					gameState.setValue(GameState.OTHERS_TURN);
+			}
+		}
 	}
 
-	void send(String s) {
-		pw.println(s);
-	}
-
-	String receive() {
-		return sc.nextLine();
+	public boolean setDecision(int source, int destinaiton) {
+		if (gameState.getValue() == GameState.YOUR_TURN) {
+			send(ClientMessage.action_request);
+			return Objects.equals(receive(), ServerMessage.action_accepted);
+		}
+		return false;
 	}
 }
