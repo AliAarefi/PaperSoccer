@@ -2,15 +2,18 @@ package agent;
 
 import common.ClientMessage;
 import common.ServerMessage;
+import common.Watchable;
+import common.Watcher;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.Scanner;
 
-public abstract class BaseAgent {
+public class AgentAPI {
 	Socket socket;
 	private PrintWriter pw;
 	private Scanner sc;
@@ -18,20 +21,25 @@ public abstract class BaseAgent {
 	private boolean player = false;
 	int side;
 	int board[][];
+	private Watchable<GameState> gameState;
 
-	BaseAgent() throws IOException {
+	AgentAPI(Watcher<GameState> w) throws IOException {
 		socket = new Socket("localhost", 10000);
 		pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
 		sc = new Scanner(socket.getInputStream());
+
+		gameState = new Watchable<>(GameState.GAME_PREPARING);
+		gameState.setWatcher(w);
+
 		authentication();
 	}
 
 	void authentication() {
 		do {
-			setUsername();
+//			setUsername();
 			send(ClientMessage.agent_authentication);
 			send(username);
-		} while (receive() == ServerMessage.authentication_aproval);
+		} while (receive() == ServerMessage.authentication_approval);
 	}
 
 	boolean changeAgentType() {
@@ -42,22 +50,32 @@ public abstract class BaseAgent {
 		} else
 			type = "observer";
 		send(ClientMessage.agent_type + " " + type);
-		if (receive() == ServerMessage.change_agent_type_aproval)
+		if (receive() == ServerMessage.change_agent_type_approval)
 			return true;
 		return false;
 	}
 
 
 	// to set followings using UIs depends on agent types: ai / (textual/graphical) human / (textual/graphical) observer
-	abstract void setUsername();
+	void setUsername(String username) {
+		this.username = username;
+	}
 
-	abstract void setPlayer();
+	void setPlayer(boolean palayer) {
 
-	abstract void setSide();
+	}
 
-	abstract void joinGame();
+	void setSide() {
 
-	abstract void leaveGame();
+	}
+
+	void joinGame() {
+
+	}
+
+	void leaveGame() {
+
+	}
 
 	void start() {
 		new Thread(() -> {
@@ -67,22 +85,25 @@ public abstract class BaseAgent {
 
 	private void observe() {
 		while (true) {
-			if (receive() == ServerMessage.world_broadcast) {
+			String serverBroadcast = receive();
+			if (Objects.equals(serverBroadcast, ServerMessage.world_broadcast)) {
 				board = boardParser(receive());
-			} else if (receive() == ServerMessage.turn_broadcast) {
+			} else if (Objects.equals(serverBroadcast, ServerMessage.turn_broadcast)) {
 				String turn = receive();
-				if (turn == "Finish")
+				if (Objects.equals(turn, ServerMessage.game_finished)) {
+					gameState.setValue(GameState.GAME_FINISHED);
 					break;
-				else if (turn == username) {
-					new Thread(() -> {
-						this.makeDecision();
-					}).start();
-				}
+				} else if (turn == username)
+					gameState.setValue(GameState.YOUR_TURN);
+				else
+					gameState.setValue(GameState.OTHERS_TURN);
 			}
 		}
 	}
 
-	abstract void makeDecision();
+	void makeDecision() {
+
+	}
 
 	private int[][] boardParser(String receive) {
 		int tmp[][] = new int[11][9];
