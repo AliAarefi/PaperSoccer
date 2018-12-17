@@ -54,32 +54,37 @@ public class AgentAPI {
 		return setUsername(username);
 	}
 
-	private void setPlayer(int side) {
-		this.player = true;
-		this.side = side;
-	}
-
 	public boolean isPlayer() {
 		return player;
 	}
 
-	private boolean changeAgentType(int side) {
-		String type;
-		if (isPlayer()) {
-			setPlayer(side);
-			type = "player " + side;
-		} else
-			type = "observer";
-		send(ClientMessage.agent_type + " " + type);
-		return Objects.equals(receive(), ServerMessage.change_agent_type_approval);
+	private void changeAgentType(int side) {  // if side == 0 change sth locally, (server side by join/leave)
+		if (side == 0)
+			this.player = false;
+		else {
+			this.player = true;
+			this.side = side;
+		}
 	}
 
-	public boolean joinGame() {
-		return true;  // TODO
+	public boolean joinGame(int side) {
+		send(ClientMessage.join_request + " " + side);
+		String response = receive();
+		if (Objects.equals(response, ServerMessage.join_accepted)) {
+			changeAgentType(side);
+			return true;
+		} else if (response == ServerMessage.error_players_full) {
+			return false;
+		} else return false;  // TODO case: selected side is full but another side is empty
 	}
 
 	public boolean leaveGame() {
-		return true;  // TODO
+		send(ClientMessage.leave_request);
+		if (Objects.equals(receive(), ServerMessage.leave_accepted)) {
+			changeAgentType(0);
+			return true;
+		}
+		return false;
 	}
 
 	private int[][] boardParser(String receive) {
