@@ -118,7 +118,7 @@ public class AgentAPI {
 
 	public boolean setDecision(int source, int destinaiton) {
 		if (gameState.getValue() == GameState.YOUR_TURN) {
-			send(ClientMessage.action_request);
+			send(ClientMessage.action_request + " " + source + " " + destinaiton);
 			return Objects.equals(receive(), ServerMessage.action_accepted);
 		}
 		return false;
