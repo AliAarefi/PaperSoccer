@@ -13,7 +13,7 @@ class Agent {
 	private PrintWriter pw;
 	private Scanner sc;
 	String username;
-	private UUID id;
+	final UUID id;
 	private boolean player = false;
 	int side;
 

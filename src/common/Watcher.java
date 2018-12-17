@@ -1,5 +1,5 @@
 package common;
 
 public interface Watcher<T> {
-	void valueChanged(Watchable obj, T oldValue, T newValue);
+	void valueChanged(Watchable<T> obj, T oldValue, T newValue);
 }

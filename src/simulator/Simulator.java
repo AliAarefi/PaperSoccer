@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 class Simulator {
+	private int port;
 	private Logger log = new Logger("Simulator");
 	private ServerSocket server;
 	private Environment environment;
@@ -30,17 +31,20 @@ class Simulator {
 
 		while (true) {
 			try {
-				server = new ServerSocket((new Random().nextInt() % 60000) + 5000);
+				port = (new Random().nextInt() % 60000) + 5000;
+				server = new ServerSocket(port);
 				break;
 			} catch (IOException ignored) {
 			}
 		}
 
+		log.d(0, String.format("Server is running on port %d", port));
+
 		messageHandler = new Thread(() -> {
 			try {
 				while (simulating) {
 					Message m = MessageQueue.getInstance().take();
-					log.d(2, String.format("New message received from agent %s", agents.get(m.id).username));
+					log.d(0, String.format("New message received from agent %s", agents.get(m.id).username));
 					handle(m);
 				}
 			} catch (InterruptedException e) {
@@ -55,7 +59,7 @@ class Simulator {
 				new Thread(() -> {  // TODO Use thread pool
 					try {
 						UUID id = UUID.randomUUID();
-						log.d(1, String.format("A new client has been connected. (%s)", id.toString()));
+						log.d(0, String.format("A new client has been connected. (%s)", id.toString()));
 						Agent agent = new Agent(socket, id);
 						agents.put(id, agent);
 					} catch (IOException e) {
@@ -67,7 +71,7 @@ class Simulator {
 		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			log.d(1, "Shutting down the simulator...");
+			log.d(0, "Shutting down the simulator...");
 			simulating = false;
 			try {
 				messageHandler.join();
@@ -80,7 +84,7 @@ class Simulator {
 		for (UUID id : players)
 			if (id == null) return;
 		gameReady.setValue(Boolean.TRUE);
-		log.d(1, "Game is ready!");
+		log.d(0, "Game is ready!");
 	}
 
 	void setEnvironment(Environment e) {
@@ -111,7 +115,7 @@ class Simulator {
 						int side = Integer.parseInt(message[2]);
 						if (players[side] == null) {
 							agent.setPlayer(true, side);
-							log.d(1, String.format("Player %d is set.", agent.side));
+							log.d(0, String.format("Player %d is set.", agent.side));
 							checkGameReady();
 						} else
 							agent.send(ServerMessage.error_players_full);
