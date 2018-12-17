@@ -1,14 +1,15 @@
+fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
 const canvas = new fabric.Canvas('canvas', {
   selection: false,
   preserveObjectStacking: true,
   backgroundColor: '#eee'
 });
-fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
 
 const margin_left = 40, margin_top = 70,
-  width = 763 - (2 * margin_left), height = 600 - (2 * margin_top);
+  width = 763 - (2 * margin_left), height = 600 - (2 * margin_top),
+  ballRadiusNormal = 5, ballRadiusBig = 8, betweenBalls = (ballRadiusBig * 2 + 7);
 
-let rows = 6, columns = 4;  // Both must be even
+const rows = 6, columns = 6;  // Both must be even
 
 let horizontal_distance = width / columns, vertical_distance = height / rows;
 
@@ -30,19 +31,19 @@ function PaperSoccerBoard(canvas, rows, columns) {
       let dot = new fabric.Circle({
         left: margin_left + (j * horizontal_distance),
         top: margin_top + (i * vertical_distance),
-        radius: 4,
+        radius: ballRadiusNormal,
         hasControls: false,
         selectable: false,
         hoverCursor: 'pointer',
         class: 'ballPlace',
-        index: i + j,
+        index: i * (columns + 1) + j,
         valid: false
       });
       this.dots.push(dot);
       canvas.add(dot);
     }
   }
-  this.dots[this.ballIndex].set({radius: 7, fill: '#0F0'});
+  this.dots[this.ballIndex].set({radius: ballRadiusBig, fill: '#0F0'});
 
   this.adjacency = [];
   for (let i = 0; i < (rows) * (columns); ++i) {
@@ -52,12 +53,60 @@ function PaperSoccerBoard(canvas, rows, columns) {
     this.adjacency.push(row);
   }
 
+  let hoverLine = new fabric.Rect({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+    rx: 6,
+    ry: 6,
+    fill: 'transparent',
+    stroke: '#DDD',
+    strokeWidth: 4,
+    selectable: false
+  });
+
   // Dots which are valid moves, get bigger when hovered
   canvas.on('mouse:over', e => {
-    let target = e.target;
+    let target = e.target, ballIndex = this.ballIndex;
     if (target && target.class === 'ballPlace') {
       if (target.valid) {
-        target.set('radius', 7);
+        target.set('radius', ballRadiusBig);
+        let lineWidth = Math.sqrt(Math.pow(this.dots[ballIndex].left - this.dots[target.index].left, 2) + Math.pow(this.dots[ballIndex].top - this.dots[target.index].top, 2)) - betweenBalls,
+          lineHeight = 10, rotate = 0;
+        switch (target.index - ballIndex) {
+          // case -1:  // Left
+          //   break;
+          case -columns - 2:  // Top Left
+            rotate = Math.atan((this.dots[ballIndex].top - this.dots[target.index].top) / lineWidth) * 180 / Math.PI;
+            break;
+          case -columns - 1:  // Top
+            lineHeight = lineWidth;
+            lineWidth = 10;
+            break;
+          case -columns:  // Top Right
+            rotate = Math.atan((this.dots[target.index].top - this.dots[ballIndex].top) / lineWidth) * 180 / Math.PI;
+            break;
+          // case 1:  // Right
+          //   break;
+          case columns + 2:  // Bottom Right
+            rotate = Math.atan((this.dots[target.index].top - this.dots[ballIndex].top) / lineWidth) * 180 / Math.PI;
+            break;
+          case columns + 1:  // Bottom
+            lineHeight = lineWidth;
+            lineWidth = 10;
+            break;
+          case columns:  // Bottom Left
+            rotate = Math.atan((this.dots[ballIndex].top - this.dots[target.index].top) / lineWidth) * 180 / Math.PI
+        }
+        hoverLine.set({
+          left: (this.dots[ballIndex].left + this.dots[target.index].left) / 2,
+          top: (this.dots[target.index].top + this.dots[ballIndex].top) / 2,
+          width: lineWidth,
+          height: lineHeight
+        });
+        hoverLine.rotate(rotate);
+        this.canvas.add(hoverLine);
         canvas.requestRenderAll();
       }
     }
@@ -66,7 +115,8 @@ function PaperSoccerBoard(canvas, rows, columns) {
     let target = e.target;
     if (target && target.class === 'ballPlace') {
       if (target.valid) {
-        target.set('radius', 4);
+        target.set('radius', ballRadiusNormal);
+        this.canvas.remove(hoverLine);
         canvas.requestRenderAll();
       }
     }
@@ -80,7 +130,7 @@ function PaperSoccerBoard(canvas, rows, columns) {
 PaperSoccerBoard.prototype.constructor = PaperSoccerBoard;
 
 PaperSoccerBoard.prototype.addLine = async function (i, j) {
-  let line = new fabric.Line([dots[i].left, dots[i].top, dots[j].left, dots[j].top], {
+  let line = new fabric.Line([this.dots[i].left, this.dots[i].top, this.dots[j].left, this.dots[j].top], {
     fill: '#000',
     stroke: '#000',
     strokeWidth: 2
@@ -116,11 +166,10 @@ PaperSoccerBoard.prototype.getValidMoves = function () {
   } else if (ballIndex > (rows * (columns + 1))) {  // Bottom edge
     validMoves = [ballIndex - 1, ballIndex + 1, ballIndex - (columns + 1), ballIndex - columns, ballIndex - (columns + 2)];
     if (Math.abs(ballIndex - (rows * (columns + 1)) - (columns / 2)) <= 1) validMoves += [-4, -5, -6];  // Goal is reachable
-  } else if (ballIndex % (columns + 1) === 0) {  // Left edge
+  } else if (ballIndex % (columns + 1) === 0)  // Left edge
     validMoves = [ballIndex + 1, ballIndex - (columns + 1), ballIndex + (columns + 1), ballIndex - columns, ballIndex + (columns + 2)];
-  } else if ((ballIndex - 4) % (columns + 1) === 0) {  // Right edge
+  else if (ballIndex % (columns + 1) === 1)  // Right edge
     validMoves = [ballIndex - 1, ballIndex - (columns + 1), ballIndex + (columns + 1), ballIndex - (columns + 2), ballIndex + columns];
-  }
 
   // No constraint
   else
