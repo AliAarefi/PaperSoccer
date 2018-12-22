@@ -41,7 +41,7 @@ public class AgentAPI {
 	}
 
 	private boolean setUsername(String username) {
-		send(username);
+		send(ClientMessage.agent_authentication + " " + username);
 		if (Objects.equals(receive(), ServerMessage.authentication_approved)) {
 			this.username = username;
 			return true;
@@ -50,7 +50,6 @@ public class AgentAPI {
 	}
 
 	public boolean authenticate(String username) {
-		send(ClientMessage.agent_authentication);
 		return setUsername(username);
 	}
 
@@ -73,9 +72,12 @@ public class AgentAPI {
 		if (Objects.equals(response, ServerMessage.join_accepted)) {
 			changeAgentType(side);
 			return true;
-		} else if (response == ServerMessage.error_players_full) {
+		} else if (Objects.equals(response, ServerMessage.error_players_full)) {
 			return false;
-		} else return false;  // TODO case: selected side is full but another side is empty
+		} else if (Objects.equals(response, ServerMessage.join_failed)) {
+			return false;  // TODO change return type: selected side is full but another side is empty (=SM.join_failed)
+		}
+		return false;
 	}
 
 	public boolean leaveGame() {
@@ -116,9 +118,9 @@ public class AgentAPI {
 		}
 	}
 
-	public boolean setDecision(int source, int destinaiton) {
+	public boolean setDecision(int source, int destination) {
 		if (gameState.getValue() == GameState.YOUR_TURN) {
-			send(ClientMessage.action_request + " " + source + " " + destinaiton);
+			send(ClientMessage.action_request + " " + source + " " + destination);
 			return Objects.equals(receive(), ServerMessage.action_accepted);
 		}
 		return false;
