@@ -1,4 +1,4 @@
-package common;
+package papersoccer.common;
 
 public class Watchable<T> {
 	private Watcher<T> watcher;

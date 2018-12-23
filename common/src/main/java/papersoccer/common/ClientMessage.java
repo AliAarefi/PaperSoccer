@@ -1,4 +1,4 @@
-package common;
+package papersoccer.common;
 
 public class ClientMessage {
 	public static final String agent_authentication = "$C0";

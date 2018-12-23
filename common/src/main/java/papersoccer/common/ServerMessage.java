@@ -1,4 +1,4 @@
-package common;
+package papersoccer.common;
 
 public class ServerMessage {
 	public static final String error_players_full = "$S0";

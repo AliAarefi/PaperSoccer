@@ -1,9 +1,9 @@
-package simulator;
+package papersoccer.simulator;
 
-import common.ClientMessage;
-import common.Logger;
-import common.ServerMessage;
-import common.Watchable;
+import papersoccer.common.ClientMessage;
+import papersoccer.common.Logger;
+import papersoccer.common.ServerMessage;
+import papersoccer.common.Watchable;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -31,7 +31,7 @@ class Simulator {
 
 		while (true) {
 			try {
-				port = (new Random().nextInt() % 60000) + 5000;
+				port = new Random().nextInt(60000) + 5000;
 				server = new ServerSocket(port);
 				break;
 			} catch (IOException ignored) {
@@ -120,6 +120,7 @@ class Simulator {
 					int side = Integer.parseInt(message[1]);
 					if (players[side] == null) {
 						agent.setPlayer(true, side);
+						players[side] = agent.id;
 						log.d(0, String.format("Player %d is set.", agent.side));
 						checkGameReady();
 					} else {

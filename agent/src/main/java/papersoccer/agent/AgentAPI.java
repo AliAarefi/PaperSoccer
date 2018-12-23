@@ -1,9 +1,9 @@
-package agent;
+package papersoccer.agent;
 
-import common.ClientMessage;
-import common.ServerMessage;
-import common.Watchable;
-import common.Watcher;
+import papersoccer.common.ClientMessage;
+import papersoccer.common.ServerMessage;
+import papersoccer.common.Watchable;
+import papersoccer.common.Watcher;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

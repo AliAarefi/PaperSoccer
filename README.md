@@ -5,7 +5,6 @@ A simulator (server) and different clients to play Paper Soccer.
 
 #### Prerequisites
 * Java 8 or higher
-* Ant 1.6 or higher
 
 #### Building
 Clone or download the project:
@@ -16,15 +15,14 @@ $ unzip master.zip
 
 Compile and run the simulator:
 ```console
-$ ant all
-$ cd out/production/PaperSoccer/
-$ java Simulator.class
+$ ./gradlew build
+$ java -cp "./build/*" papersoccer.simulator.Simulator
 ```
 
 ### Collaborators
-|              Ali Mirlou              |       Mohammad Mahdi Balouchi       |
-| :---------------------------------: | :---------------------------------: |
-| [![Mirlou]](http://github.com/AliMirlou) | [![Balouchi]](http://github.com/mmehdibalouchi) |
+|              Ali Mirlou                  |
+| :--------------------------------------: |
+| [![Mirlou]](http://github.com/AliMirlou) |
 
 [Mirlou]: https://avatars3.githubusercontent.com/u/19661419?s=150&v=4
 [Balouchi]: https://avatars2.githubusercontent.com/u/12944336?s=150&v=4

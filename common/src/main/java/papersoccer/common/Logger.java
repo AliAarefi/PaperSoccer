@@ -1,4 +1,4 @@
-package common;
+package papersoccer.common;
 
 public class Logger {
 	private String namespace;

@@ -1,4 +1,4 @@
-package agent;
+package papersoccer.agent;
 
 public enum GameState {
 	GAME_FINISHED,

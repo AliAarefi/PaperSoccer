@@ -1,4 +1,4 @@
-package simulator;
+package papersoccer.simulator;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
