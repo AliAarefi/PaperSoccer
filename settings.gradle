@@ -1,0 +1,3 @@
+rootProject.name = 'PaperSoccer'
+include ':common', ':simulator', ':agent'
+

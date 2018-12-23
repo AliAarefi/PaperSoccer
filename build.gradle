@@ -1,0 +1,33 @@
+subprojects {
+	apply plugin: 'java'
+	group = 'papersoccer'
+	version = '0.1'
+}
+
+project(':simulator') {
+	dependencies {
+		implementation project(':common')
+	}
+	jar {
+		manifest {
+			attributes 'Main-Class': 'papersoccer.simulator.Simulator'
+		}
+	}
+}
+
+project(':agent') {
+	dependencies {
+		implementation project(':common')
+	}
+}
+
+task assembleAll(type: Copy) {
+	dependsOn ':simulator:build'
+	dependsOn ':agent:build'
+	into "$buildDir"
+	subprojects {
+		from("$buildDir/libs") {
+			include "*.jar"
+		}
+	}
+}
