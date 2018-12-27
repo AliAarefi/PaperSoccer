@@ -152,7 +152,7 @@ class Simulator {
 				if (message.length == 3) {
 					if (environment.doAction(Integer.parseInt(message[1]), Integer.parseInt(message[2]))) {
 						agent.send(ServerMessage.action_accepted);
-						for(UUID player: players)
+						for (UUID player : players)
 							if (player != agent.id)
 								turn = agents.get(player).username;  // turn changed
 					} else {
