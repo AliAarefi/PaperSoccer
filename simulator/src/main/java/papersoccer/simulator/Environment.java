@@ -161,4 +161,14 @@ public class Environment {
 		}
 		return summation;
 	}
+
+	String convertToString(){
+		String result = "";
+		for (int i = 0; i < width*height; i++) {
+			for (int j = 0; j < width*height; j++)
+				result += Integer.toString(board[i][j]) + " ";
+			result += "\n";
+		}
+		return result;
+	}
 }
