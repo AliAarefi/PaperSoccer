@@ -60,22 +60,22 @@ public class Environment {
 		int centerOfLineOfGoals[] = {width / 2, width * (height - 1) + width / 2};
 		if (source == centerOfLineOfGoals[0]) {
 			if (destination < 0 && destination > -4) {  // goal nodes for top goal : -1, -2, -3
-				finished = true;
+				finishTheGame();
 				return true;
 			}
 		} else if (source == centerOfLineOfGoals[1]) {
 			if (destination < -3 && destination > -7) {  // goal nodes for bottom goal : -4, -5, -6
-				finished = true;
+				finishTheGame();
 				return true;
 			}
 		} else if (source == centerOfLineOfGoals[0] - 1 || source == centerOfLineOfGoals[0] + 1) {
 			if (destination == -2) {
-				finished = true;
+				finishTheGame();
 				return true;
 			}
 		} else if (source == centerOfLineOfGoals[1] - 1 || source == centerOfLineOfGoals[1] + 1) {
 			if (destination == -5) {
-				finished = true;
+				finishTheGame();
 				return true;
 			}
 		}
@@ -84,36 +84,21 @@ public class Environment {
 			return false;
 
 		// to handle corners:
-		if (source == 0) {  // top left corner
-			if (destination == source + width + 1 && board[source][destination] == 0) {
-				board[source][destination] = 1;
-				ballPosition = destination;
-				return true;
-			} else
+		int[] corners = {0, width - 1, width * (height - 1), width * height - 1};
+		int[] legalSourceForEachCorner = {width + 1, 2 * width, width * (height - 2) + 1, width * height - width - 2};
+		for (int i = 0; i < corners.length; i++) {
+			// if source placed on one of corners
+			if (source == corners[i])
 				return false;
-		} else if (source == width - 1) {  // top right corner
-			if (destination == source + width + 1 && board[source][destination] == 0) {
-				board[source][destination] = 1;
-				ballPosition = destination;
-				return true;
-			} else
-				return false;
-		} else if (source == width * (height - 1)) {  // bottom left corner
-			if (destination == source - width + 1 && board[source][destination] == 0) {
-				board[source][destination] = 1;
-				ballPosition = destination;
-				return true;
-			} else
-				return false;
-
-		} else if (source == width * height - 1) {  // bottom right corner
-			if (destination == source - width - 1 && board[source][destination] == 0) {
-				board[source][destination] = 1;
-				ballPosition = destination;
-				return true;
-			} else
-				return false;
-
+			// if destination placed on one of corners
+			if (destination == corners[i]) {
+				if (source == legalSourceForEachCorner[i]) {
+					board[source][destination] = 1;
+					ballPosition = destination;
+					finishTheGame();
+					return true;
+				} else return false;
+			}
 		}
 
 		// to handle edges and center nodes
@@ -189,6 +174,11 @@ public class Environment {
 		if (this.turn == ServerMessage.turn_of_bottom_player)
 			return ServerMessage.turn_of_upper_player;
 		return ServerMessage.turn_of_bottom_player;
+	}
+
+	private void finishTheGame() {
+		turn = ServerMessage.game_finished;
+		finished = true;
 	}
 
 	private void setTurn() {
