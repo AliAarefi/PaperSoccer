@@ -182,7 +182,29 @@ public class Environment {
 	}
 
 	private void setTurn() {
+		if (isDivari(ballPosition)) {
+			if (calculateDegreeOfNode(ballPosition) == 5)
+				turn = ServerMessage.game_finished;
+			else return;
+		}
 		if (calculateDegreeOfNode(ballPosition) < 2)
 			turn = getAnotherPlayerTurn();
+		if (calculateDegreeOfNode(ballPosition) == 8)
+			turn = ServerMessage.game_finished;
+	}
+
+	private boolean isDivari(int position) {
+		int centerOfLineOfGoals[] = {width / 2, width * (height - 1) + width / 2};
+		if (position == centerOfLineOfGoals[0] || position == centerOfLineOfGoals[1])  // exceptions
+			return false;
+		if (position % width == 0) // on left edge
+			return true;
+		if (position % width == width - 1) // on right edge
+			return true;
+		if (position > (height - 1) * width && position < height * width - 1) // on bottom edge
+			return true;
+		if (position > 0 && position < width - 1) // on top edge
+			return true;
+		return false;
 	}
 }
