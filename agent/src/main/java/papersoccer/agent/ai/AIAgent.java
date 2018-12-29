@@ -3,6 +3,7 @@ package papersoccer.agent.ai;
 import papersoccer.agent.AgentAPI;
 
 import java.io.IOException;
+import java.util.TreeSet;
 
 public class AIAgent {
 	private AgentAPI api;
@@ -21,9 +22,16 @@ public class AIAgent {
 		}
 	}
 
-	private int[] getValidMoves() {
+	private Integer[] getValidMoves() {
 		int[][] board = api.board;
+		TreeSet<Integer> moves = new TreeSet<>();
 		// TODO
+		for (int i = 0; i < 9; i++) {
+			for (int j=0; j < 11; j++){
+				if ()
+			}
+		}
+		return moves.toArray(new Integer[0]);
 	}
 
 	private int calculateHeuristic() {
