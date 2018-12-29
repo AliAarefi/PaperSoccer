@@ -21,6 +21,12 @@ public class AIAgent {
 		}
 	}
 
+	private int calculateHeuristic() {
+		int width = api.board.length, height = api.board[0].length, ballPosition = api.ballPosition;
+		if (api.side == 2) return (height - (ballPosition / width)) + Math.abs(width - (ballPosition % width));
+		else return (ballPosition / width) + Math.abs(width - (ballPosition % width));
+	}
+
 	private void act() {
 //		int heuristic = calculateHeuristic();
 
