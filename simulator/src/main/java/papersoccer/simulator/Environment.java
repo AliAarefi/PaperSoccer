@@ -4,10 +4,11 @@ import papersoccer.common.ServerMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Environment {
 	private int width, height;
-	private int board[][];
+	private int[][] board;
 	private int ballPosition;
 	private boolean finished;
 	private String turn;
@@ -57,7 +58,7 @@ public class Environment {
 			return false;
 
 		// to handle goal nodes:
-		int centerOfLineOfGoals[] = {width / 2, width * (height - 1) + width / 2};
+		int[] centerOfLineOfGoals = {width / 2, width * (height - 1) + width / 2};
 		if (source == centerOfLineOfGoals[0]) {
 			if (destination < 0 && destination > -4) {  // goal nodes for top goal : -1, -2, -3
 				finishTheGame();
@@ -93,7 +94,7 @@ public class Environment {
 			// if destination placed on one of corners
 			if (destination == corners[i]) {
 				if (source == legalSourceForEachCorner[i]) {
-					board[source][destination] = 1;
+					board[source][destination] = board[destination][source] = 1;
 					ballPosition = destination;
 					finishTheGame();
 					return true;
@@ -104,7 +105,7 @@ public class Environment {
 		// to handle edges and center nodes
 		if (source > 0 && source < width - 1) {  // top edge nodes
 			return checkMovementValidity(source, destination, "top");
-		} else if (source % width == 0 && source != 0 && source != (height - 1) * width) {  // left edge nodes
+		} else if (source % width == 0 && source != (height - 1) * width) {  // left edge nodes
 			return checkMovementValidity(source, destination, "left");
 		} else if (source % width == width - 1 && source != width - 1 && source != height * width - 1) {  // right edge nodes
 			return checkMovementValidity(source, destination, "right");
@@ -136,7 +137,7 @@ public class Environment {
 				break;
 		}
 		if (board[source][destination] == 0 && legals.contains(destination)) {
-			board[source][destination] = 1;
+			board[source][destination] = board[destination][source] = 1;
 			ballPosition = destination;
 			setTurn();
 			return true;
@@ -153,13 +154,13 @@ public class Environment {
 	}
 
 	String convertToString() {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		for (int i = 0; i < width * height; i++) {
 			for (int j = 0; j < width * height; j++)
-				result += Integer.toString(board[i][j]) + " ";
-			result += "\n";
+				result.append(board[i][j]).append(" ");
+			result.append("\n");
 		}
-		return result;
+		return result.toString();
 	}
 
 	int getBallPosition() {
@@ -171,7 +172,7 @@ public class Environment {
 	}
 
 	private String getAnotherPlayerTurn() {
-		if (this.turn == ServerMessage.turn_of_bottom_player)
+		if (Objects.equals(this.turn, ServerMessage.turn_of_bottom_player))
 			return ServerMessage.turn_of_upper_player;
 		return ServerMessage.turn_of_bottom_player;
 	}
@@ -194,17 +195,15 @@ public class Environment {
 	}
 
 	private boolean isDivari(int position) {
-		int centerOfLineOfGoals[] = {width / 2, width * (height - 1) + width / 2};
+		int[] centerOfLineOfGoals = {width / 2, width * (height - 1) + width / 2};
 		if (position == centerOfLineOfGoals[0] || position == centerOfLineOfGoals[1])  // exceptions
 			return false;
-		if (position % width == 0) // on left edge
+		if (position % width == 0)  // on left edge
 			return true;
-		if (position % width == width - 1) // on right edge
+		if (position % width == width - 1)  // on right edge
 			return true;
-		if (position > (height - 1) * width && position < height * width - 1) // on bottom edge
+		if (position > (height - 1) * width && position < height * width - 1)  // on bottom edge
 			return true;
-		if (position > 0 && position < width - 1) // on top edge
-			return true;
-		return false;
+		return position > 0 && position < width - 1;  // on top edge
 	}
 }
