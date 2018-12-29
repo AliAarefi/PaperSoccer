@@ -22,6 +22,7 @@ class Simulator {
 	private Watchable<Boolean> gameReady;
 	private boolean simulating = true;
 	private Thread messageHandler;
+	private String turn;
 
 	Simulator(int n) {
 		agents = new ConcurrentHashMap<>();
@@ -46,6 +47,13 @@ class Simulator {
 					Message m = MessageQueue.getInstance().take();
 					log.d(0, String.format("New message received from agent %s", agents.get(m.id).username));
 					handle(m);
+					// TODO check correctness of world & turn broadcast to all agents
+					for (Agent agent : agents.values()) {
+						agent.send(ServerMessage.world_broadcast);
+						agent.send(environment.convertToString());
+						agent.send(ServerMessage.turn_broadcast);
+						agent.send(turn);
+					}
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -145,6 +153,9 @@ class Simulator {
 					if (environment.doAction(Integer.parseInt(message[1]), Integer.parseInt(message[2]))) {
 						agent.send(ServerMessage.action_accepted);
 						// TODO broadcast world
+						for (UUID player : players)
+							if (player != agent.id)
+								turn = agents.get(player).username;  // turn changed
 					} else {
 						agent.send(ServerMessage.action_failed);
 					}
