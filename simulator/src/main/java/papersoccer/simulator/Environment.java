@@ -1,5 +1,7 @@
 package papersoccer.simulator;
 
+import papersoccer.common.ServerMessage;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -8,6 +10,7 @@ public class Environment {
 	private int board[][];
 	private int ballPosition;
 	private boolean finished;
+	private String turn;
 
 	public Environment(int x, int y) {
 		if ((x | y) % 2 == 1) return;  // Both x and y have to be even (number of squares in rows & columns)
@@ -18,6 +21,7 @@ public class Environment {
 	void clear() {
 		finished = false;
 		board = new int[width * height][width * height];
+		turn = ServerMessage.turn_of_bottom_player;
 
 		// filling board edges in adjacency matrix, exploration based on upper triangular matrix but filling all cells
 		for (int i = 0; i < width * height; i++)
@@ -149,6 +153,7 @@ public class Environment {
 		if (board[source][destination] == 0 && legals.contains(destination)) {
 			board[source][destination] = 1;
 			ballPosition = destination;
+			setTurn();
 			return true;
 		}
 		return false;
@@ -160,5 +165,34 @@ public class Environment {
 			summation += board[nodeID][i];
 		}
 		return summation;
+	}
+
+	String convertToString() {
+		String result = "";
+		for (int i = 0; i < width * height; i++) {
+			for (int j = 0; j < width * height; j++)
+				result += Integer.toString(board[i][j]) + " ";
+			result += "\n";
+		}
+		return result;
+	}
+
+	int getBallPosition() {
+		return ballPosition;
+	}
+
+	String getTurn() {
+		return turn;
+	}
+
+	private String getAnotherPlayerTurn() {
+		if (this.turn == ServerMessage.turn_of_bottom_player)
+			return ServerMessage.turn_of_upper_player;
+		return ServerMessage.turn_of_bottom_player;
+	}
+
+	private void setTurn() {
+		if (calculateDegreeOfNode(ballPosition) < 2)
+			turn = getAnotherPlayerTurn();
 	}
 }

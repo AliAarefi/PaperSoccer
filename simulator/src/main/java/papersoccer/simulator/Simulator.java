@@ -22,6 +22,7 @@ class Simulator {
 	private Watchable<Boolean> gameReady;
 	private boolean simulating = true;
 	private Thread messageHandler;
+	private String turn;
 
 	Simulator(int n) {
 		agents = new ConcurrentHashMap<>();
@@ -106,11 +107,11 @@ class Simulator {
 		String[] message = m.message.split(" ");
 
 		switch (message[0]) {
-
 			case ClientMessage.agent_authentication:
 				if (message.length == 2) {
+					// TODO check username uniqueness
 					agent.username = message[1];
-					//  TODO send approved or not to client via socket (to check)
+					// TODO send approved or not, to client via socket (to check)
 					agent.send(ServerMessage.authentication_approved);
 				} else agent.send(ServerMessage.authentication_failed);
 				break;
@@ -144,6 +145,16 @@ class Simulator {
 				if (message.length == 3) {
 					if (environment.doAction(Integer.parseInt(message[1]), Integer.parseInt(message[2]))) {
 						agent.send(ServerMessage.action_accepted);
+						// broadcast world & ballPosition & turn
+						turn = whoseTurnIsIt(environment.getTurn());
+						for (Agent ag : agents.values()) {
+							ag.send(ServerMessage.world_broadcast);
+							ag.send(environment.convertToString());
+							ag.send(ServerMessage.ball_position_broadcast);
+							ag.send(Integer.toString(environment.getBallPosition()));
+							ag.send(ServerMessage.turn_broadcast);
+							ag.send(turn);
+						}
 					} else {
 						agent.send(ServerMessage.action_failed);
 					}
@@ -152,6 +163,12 @@ class Simulator {
 				}
 				break;
 		}
+	}
+
+	String whoseTurnIsIt(String envTurn) {
+		if (envTurn == ServerMessage.turn_of_bottom_player)
+			return agents.get(players[0]).username;
+		return agents.get(players[1]).username;
 	}
 
 	public static void main(String[] args) {
