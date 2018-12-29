@@ -47,13 +47,6 @@ class Simulator {
 					Message m = MessageQueue.getInstance().take();
 					log.d(0, String.format("New message received from agent %s", agents.get(m.id).username));
 					handle(m);
-					// TODO check correctness of world & turn broadcast to all agents
-					for (Agent agent : agents.values()) {
-						agent.send(ServerMessage.world_broadcast);
-						agent.send(environment.convertToString());
-						agent.send(ServerMessage.turn_broadcast);
-						agent.send(turn);
-					}
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -152,10 +145,16 @@ class Simulator {
 				if (message.length == 3) {
 					if (environment.doAction(Integer.parseInt(message[1]), Integer.parseInt(message[2]))) {
 						agent.send(ServerMessage.action_accepted);
-						// TODO broadcast world
-						for (UUID player : players)
-							if (player != agent.id)
-								turn = agents.get(player).username;  // turn changed
+						// broadcast world & ballPosition & turn
+						turn = whoseTurnIsIt(environment.getTurn());
+						for (Agent ag : agents.values()) {
+							ag.send(ServerMessage.world_broadcast);
+							ag.send(environment.convertToString());
+							ag.send(ServerMessage.ball_position_broadcast);
+							ag.send(Integer.toString(environment.getBallPosition()));
+							ag.send(ServerMessage.turn_broadcast);
+							ag.send(turn);
+						}
 					} else {
 						agent.send(ServerMessage.action_failed);
 					}
@@ -164,6 +163,12 @@ class Simulator {
 				}
 				break;
 		}
+	}
+
+	String whoseTurnIsIt(String envTurn) {
+		if (envTurn == ServerMessage.turn_of_bottom_player)
+			return agents.get(players[0]).username;
+		return agents.get(players[1]).username;
 	}
 
 	public static void main(String[] args) {
