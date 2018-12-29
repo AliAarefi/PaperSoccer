@@ -101,19 +101,25 @@ public class Environment {
 				} else return false;
 			}
 		}
-
 		// to handle edges and center nodes
-		if (source > 0 && source < width - 1) {  // top edge nodes
-			return checkMovementValidity(source, destination, "top");
-		} else if (source % width == 0 && source != (height - 1) * width) {  // left edge nodes
-			return checkMovementValidity(source, destination, "left");
-		} else if (source % width == width - 1 && source != width - 1 && source != height * width - 1) {  // right edge nodes
-			return checkMovementValidity(source, destination, "right");
-		} else if (source > (height - 1) * width && source < height * width - 1) {  // bottom edge nodes
-			return checkMovementValidity(source, destination, "bottom");
-		} else {  // center nodes
-			return checkMovementValidity(source, destination, "center");
+		String sourceArea;
+		if (source > 0 && source < width - 1)  // top edge nodes
+			sourceArea = "top";
+		else if (source % width == 0 && source != (height - 1) * width)  // left edge nodes
+			sourceArea = "left";
+		else if (source % width == width - 1 && source != width - 1 && source != height * width - 1)  // right edge nodes
+			sourceArea = "right";
+		else if (source > (height - 1) * width && source < height * width - 1)  // bottom edge nodes
+			sourceArea = "bottom";
+		else  // center nodes
+			sourceArea = "center";
+		if (checkMovementValidity(source, destination, sourceArea)) {
+			board[source][destination] = board[destination][source] = 1;
+			ballPosition = destination;
+			setTurn();
+			return true;
 		}
+		return false;
 	}
 
 	private boolean checkMovementValidity(int source, int destination, String sourceArea) {
@@ -136,13 +142,7 @@ public class Environment {
 				legals.addAll(Arrays.asList(source - width - 1, source - width, source - width + 1));
 				break;
 		}
-		if (board[source][destination] == 0 && legals.contains(destination)) {
-			board[source][destination] = board[destination][source] = 1;
-			ballPosition = destination;
-			setTurn();
-			return true;
-		}
-		return false;
+		return board[source][destination] == 0 && legals.contains(destination);
 	}
 
 	int calculateDegreeOfNode(int nodeID) {
