@@ -26,10 +26,9 @@ public class AIAgent {
 		int[][] board = api.board;
 		TreeSet<Integer> moves = new TreeSet<>();
 		// TODO
-		for (int i = 0; i < 9; i++) {
-			for (int j=0; j < 11; j++){
-				if ()
-			}
+		for (int i = 0; i < board.length; i++) {
+			if (board[api.ballPosition][i] == 0)
+				moves.add(i);
 		}
 		return moves.toArray(new Integer[0]);
 	}
