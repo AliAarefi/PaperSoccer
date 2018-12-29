@@ -21,6 +21,7 @@ public class AgentAPI {
 	private boolean player = false;
 	public int side;
 	public int board[][];
+	public int ballPosition;
 	private Watchable<GameState> gameState;
 
 	public AgentAPI(Watcher<GameState> w) throws IOException {
@@ -114,6 +115,8 @@ public class AgentAPI {
 					gameState.setValue(GameState.YOUR_TURN);
 				else
 					gameState.setValue(GameState.OTHERS_TURN);
+			} else if (Objects.equals(serverBroadcast, ServerMessage.ball_position_broadcast)) {
+				ballPosition = Integer.parseInt(receive());
 			}
 		}
 	}
