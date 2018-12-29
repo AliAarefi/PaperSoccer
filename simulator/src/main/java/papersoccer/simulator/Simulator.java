@@ -106,11 +106,11 @@ class Simulator {
 		String[] message = m.message.split(" ");
 
 		switch (message[0]) {
-
 			case ClientMessage.agent_authentication:
 				if (message.length == 2) {
+					// TODO check username uniqueness
 					agent.username = message[1];
-					//  TODO send approved or not to client via socket (to check)
+					// TODO send approved or not, to client via socket (to check)
 					agent.send(ServerMessage.authentication_approved);
 				} else agent.send(ServerMessage.authentication_failed);
 				break;
@@ -144,6 +144,7 @@ class Simulator {
 				if (message.length == 3) {
 					if (environment.doAction(Integer.parseInt(message[1]), Integer.parseInt(message[2]))) {
 						agent.send(ServerMessage.action_accepted);
+						// TODO broadcast world
 					} else {
 						agent.send(ServerMessage.action_failed);
 					}

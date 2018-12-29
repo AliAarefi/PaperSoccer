@@ -161,4 +161,8 @@ public class Environment {
 		}
 		return summation;
 	}
+
+	String serialize() {
+		return "";  // TODO
+	}
 }
