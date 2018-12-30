@@ -144,4 +144,8 @@ public class AIAgent {
 		int depth = 1;  // TODO set depth properly
 		api.setDecision(api.ballPosition, minimax(depth));
 	}
+
+	public static void main(String[] args) {
+		new AIAgent();
+	}
 }
