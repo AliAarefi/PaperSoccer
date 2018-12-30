@@ -5,7 +5,7 @@ import papersoccer.agent.AgentAPI;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.TreeSet;
+import java.util.HashSet;
 
 public class AIAgent {
 	private AgentAPI api;
@@ -27,7 +27,7 @@ public class AIAgent {
 	}
 
 	private Integer[] getValidMoves() {
-		TreeSet<Integer> moves = new TreeSet<>();
+		HashSet<Integer> moves = new HashSet<>();
 		for (int i = -6; i < api.board.length; i++)
 			if (isValid(api.ballPosition, i))
 				moves.add(i);
