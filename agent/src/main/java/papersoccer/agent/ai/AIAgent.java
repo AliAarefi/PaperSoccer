@@ -140,8 +140,7 @@ public class AIAgent {
 	}
 
 	private void act() {
-		int dest = 1;  // TODO call minimax and find ball position
-
-		api.setDecision(api.ballPosition, dest);
+		int depth = 1;  // TODO set depth properly
+		api.setDecision(api.ballPosition, minimax(depth));
 	}
 }
