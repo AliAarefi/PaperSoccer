@@ -113,9 +113,10 @@ public class AIAgent {
 	}
 
 	private int calculateHeuristic() {
-		int width = api.board.length, height = api.board[0].length, ballPosition = api.ballPosition;
-		if (api.side == 2) return (height - (ballPosition / width)) + Math.abs(width - (ballPosition % width));
-		else return (ballPosition / width) + Math.abs(width - (ballPosition % width));
+		int width = api.board.length, height = api.board[0].length, ballPosition = api.ballPosition,
+				heur = Math.abs((width / 2) - (ballPosition % width));
+		if (api.side == 2) return (height - (ballPosition / width)) + heur;
+		else return (ballPosition / width) + heur;
 	}
 
 	private int max(int depth) {
