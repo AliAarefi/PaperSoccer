@@ -119,14 +119,34 @@ public class AIAgent {
 		else return (ballPosition / width) + heur;
 	}
 
-	private int max(int depth) {
+	private int max(GameState state, int depth) {
 		int heuristic = calculateHeuristic();
-		if (depth == 0 || heuristic <= Integer.MIN_VALUE || heuristic >= Integer.MAX_VALUE) {
-			// TODO return
+		if (depth == 0 || heuristic <= Integer.MIN_VALUE + 10000 || heuristic >= Integer.MAX_VALUE - 10000) {
+			state.benefit = heuristic;
+			return heuristic;
 		}
 
-		int result = Integer.MIN_VALUE;
-		// TODO iterate over valid actions
+		GameState current, bestChild = null;
+		int result = Integer.MIN_VALUE + 10000;
+		for (int dest : getValidMoves()) {
+			int m;
+			current = state.nextState(dest);
+
+			if (current.hasBonus())
+				m = max(current, depth - 1);
+			else
+				m = min(current, depth - 1);
+
+			if (result < m) {
+				result = m;
+				bestChild = current;
+			}
+		}
+		if (bestChild == null) {
+			// TODO
+		}
+		state.bestChild = bestChild;
+		state.benefit = result;
 		return result;
 	}
 
@@ -137,7 +157,7 @@ public class AIAgent {
 	}
 
 	private int minimax(int depth) {
-		return max(depth);
+		return max(new GameState(api.board, api.ballPosition), depth);
 	}
 
 	private void act() {
