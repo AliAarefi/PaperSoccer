@@ -150,10 +150,36 @@ public class AIAgent {
 		return result;
 	}
 
-	private int min(int depth) {
+	private int min(GameState state, int depth) {
 		int heuristic = calculateHeuristic();
-		// TODO same as max
-		return 0;
+		if (depth == 0) {
+			state.benefit = heuristic;
+			return heuristic;
+		}
+
+		GameState current, bestChild = null;
+		int result = Integer.MAX_VALUE - 10000;
+		for (int dest : getValidMoves()) {
+			int m;
+			current = state.nextState(dest);
+
+			if (current.hasBonus())
+				m = min(current, depth - 1);
+			else
+				m = max(current, depth - 1);
+
+			if (result < m) {
+				result = m;
+				bestChild = current;
+			}
+		}
+
+		if (bestChild == null) {
+			// TODO
+		}
+		state.bestChild = bestChild;
+		state.benefit = result;
+		return result;
 	}
 
 	private int minimax(int depth) {
