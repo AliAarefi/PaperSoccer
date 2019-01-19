@@ -24,14 +24,16 @@ class Agent {
 		pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(s.getOutputStream())), true);
 		sc = new Scanner(s.getInputStream());
 
-		try {
-			while (true) {
-				Message m = new Message(id, receive());
-				MessageQueue.getInstance().put(m);
+		new Thread(() -> {
+			try {
+				while (true) {
+					Message m = new Message(id, receive());
+					MessageQueue.getInstance().put(m);
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		}).start();
 	}
 
 	public void setPlayer(boolean player, int side) {

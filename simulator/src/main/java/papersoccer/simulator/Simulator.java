@@ -60,7 +60,7 @@ class Simulator {
 				new Thread(() -> {  // TODO Use thread pool
 					try {
 						UUID id = UUID.randomUUID();
-						log.d(0, String.format("A new client has been connected. (%s)", id.toString()));
+						log.d(0, String.format("A new client has been connected. (UUID: %s)", id.toString()));
 						Agent agent = new Agent(socket, id);
 						agents.put(id, agent);
 					} catch (IOException e) {
@@ -74,6 +74,10 @@ class Simulator {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			log.d(0, "Shutting down the simulator...");
 			simulating = false;
+			try {
+				server.close();
+			} catch (IOException ignored) {
+			}
 			try {
 				messageHandler.join();
 			} catch (InterruptedException ignored) {
