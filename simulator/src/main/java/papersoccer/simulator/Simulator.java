@@ -115,8 +115,11 @@ class Simulator {
 				if (message.length == 2) {
 					// TODO check username uniqueness
 					agent.username = message[1];
-					// TODO send approved or not, to client via socket (to check)
 					agent.send(ServerMessage.authentication_approved);
+					agent.send(ServerMessage.world_broadcast);
+					agent.send(environment.convertToString());
+					agent.send(ServerMessage.ball_position_broadcast);
+					agent.send(Integer.toString(environment.getBallPosition()));
 				} else agent.send(ServerMessage.authentication_failed);
 				break;
 

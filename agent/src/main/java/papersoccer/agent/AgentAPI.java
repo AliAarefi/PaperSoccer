@@ -91,7 +91,7 @@ public class AgentAPI {
 	}
 
 	private int[][] boardParser(String receive) {
-		int tmp[][] = new int[11][9];
+		int[][] tmp = new int[11][9];  // FIXME make it dynamic by counting '\n' and ' '
 		String[] lines = receive.split("\n");
 		for (int i = 0; i < lines.length; i++) {
 			String[] line = lines[i].split(" ");
