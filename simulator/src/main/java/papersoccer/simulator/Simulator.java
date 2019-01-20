@@ -7,6 +7,7 @@ import papersoccer.common.Watchable;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -100,7 +101,7 @@ class Simulator {
 
 	private void handle(Message m) {
 		Agent agent = agents.get(m.id);
-		String[] message = m.message.split(" ");
+		String[] message = m.message.split(" ", 2);
 
 		switch (message[0]) {
 			case ClientMessage.agent_authentication:
@@ -109,13 +110,11 @@ class Simulator {
 					agent.username = message[1];
 					agent.send(ServerMessage.authentication_approved);
 					log.d(0, String.format("Agent %s successfully authenticated.", agent.id.toString()));
-					if (gameRunning) {
-						agent.send(ServerMessage.world_broadcast);
-						agent.send(environment.convertToString());
-						agent.send(ServerMessage.ball_position_broadcast);
-						agent.send(Integer.toString(environment.getBallPosition()));
-					}
-				} else agent.send(ServerMessage.authentication_failed);
+					if (gameRunning)
+						broadcastGame(agent);
+					break;
+				}
+				agent.send(ServerMessage.authentication_failed);
 				break;
 
 			case ClientMessage.join_request:
@@ -132,48 +131,50 @@ class Simulator {
 						else
 							agent.send(ServerMessage.error_players_full);
 					}
-				} else agent.send(ServerMessage.join_failed);
+					break;
+				}
+				agent.send(ServerMessage.join_failed);
 				break;
 
 			case ClientMessage.leave_request:
 				if (gameRunning) {
 					agent.send(ServerMessage.leave_accepted);
 					log.d(0, String.format("Agent %s left the game.", agent.id.toString()));
-				} else {
-					agent.send(ServerMessage.leave_failed);
+					break;
 				}
+				agent.send(ServerMessage.leave_failed);
 				break;
 
 			case ClientMessage.action_request:
-				if (message.length == 3) {
-					if (environment.doAction(Integer.parseInt(message[1]), Integer.parseInt(message[2]))) {
+				message = message[1].split(" ");
+				if (gameRunning && message.length == 2) {
+					if (environment.doAction(Integer.parseInt(message[0]), Integer.parseInt(message[1]))) {
 						agent.send(ServerMessage.action_accepted);
 						log.d(0, String.format("Agent %s acted.", agent.id.toString()));
 						turn = whoseTurnIsIt(environment.getTurn());
 
 						// Broadcast world, ballPosition & turn
-						for (Agent ag : agents.values()) {
-							ag.send(ServerMessage.world_broadcast);
-							ag.send(environment.convertToString());
-							ag.send(ServerMessage.ball_position_broadcast);
-							ag.send(Integer.toString(environment.getBallPosition()));
-							ag.send(ServerMessage.turn_broadcast);
-							ag.send(turn);
-						}
-					} else {
-						agent.send(ServerMessage.action_failed);
+						for (Agent ag : agents.values())
+							broadcastGame(ag);
+						break;
 					}
-				} else {
-					agent.send(ServerMessage.action_failed);
 				}
+				agent.send(ServerMessage.action_failed);
 				break;
 		}
 	}
 
-	String whoseTurnIsIt(String envTurn) {
-		if (envTurn == ServerMessage.turn_of_bottom_player)
-			return agents.get(players[0]).username;
-		return agents.get(players[1]).username;
+	private void broadcastGame(Agent agent) {
+		agent.send(ServerMessage.world_broadcast);
+		agent.send(environment.convertToString());
+		agent.send(ServerMessage.ball_position_broadcast);
+		agent.send(Integer.toString(environment.getBallPosition()));
+		agent.send(ServerMessage.turn_broadcast);
+		agent.send(turn);
+	}
+
+	private String whoseTurnIsIt(String envTurn) {
+		return Objects.equals(envTurn, ServerMessage.turn_of_bottom_player) ? agents.get(players[0]).username : agents.get(players[1]).username;
 	}
 
 	public static void main(String[] args) {
