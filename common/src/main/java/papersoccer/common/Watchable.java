@@ -12,6 +12,10 @@ public class Watchable<T> {
 		this.watcher = watcher;
 	}
 
+	public void removeWatcher() {
+		this.watcher = null;
+	}
+
 	public void setValue(T value) {
 		if (this.value == value) return;
 		if (this.watcher != null) watcher.valueChanged(this, this.value, value);

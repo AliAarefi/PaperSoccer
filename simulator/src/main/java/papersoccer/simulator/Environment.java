@@ -157,8 +157,8 @@ public class Environment {
 		StringBuilder result = new StringBuilder();
 		for (int i = 0; i < width * height; i++) {
 			for (int j = 0; j < width * height; j++)
-				result.append(board[i][j]).append(" ");
-			result.append("\n");
+				result.append(board[i][j]).append(' ');
+			result.append('\n');
 		}
 		return result.toString();
 	}

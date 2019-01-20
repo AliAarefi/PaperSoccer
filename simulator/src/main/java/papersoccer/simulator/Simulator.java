@@ -23,9 +23,9 @@ class Simulator {
 	private Thread messageHandler;
 	private String turn;
 
-	Simulator(int n) {
+	Simulator(int number_of_players) {
 		agents = new ConcurrentHashMap<>();
-		players = new UUID[n];
+		players = new UUID[number_of_players];
 
 		gameReady = new Watchable<>(Boolean.FALSE);
 
@@ -89,6 +89,10 @@ class Simulator {
 		gameReady.setWatcher((obj, oldValue, newValue) -> {
 			if (newValue == Boolean.TRUE) start();
 		});
+	}
+
+	void dontStartWhenReady() {
+		gameReady.removeWatcher();
 	}
 
 	private void handle(Message m) {
