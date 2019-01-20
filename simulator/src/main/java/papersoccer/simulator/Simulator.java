@@ -6,18 +6,17 @@ import papersoccer.common.ServerMessage;
 import papersoccer.common.Watchable;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 class Simulator {
 	private Logger log = new Logger("Simulator");
-	private int port;
-	private ServerSocket server;
+	private SimulatorSocketServer server;
+	private SimulatorWebSocketServer serverWeb;
 	private Environment environment;
-	private ConcurrentHashMap<UUID, Agent> agents;
+	private Map<UUID, Agent> agents;
 	private UUID players[];
 	private Watchable<Boolean> gameReady;
 	private boolean simulating = true;
@@ -30,16 +29,18 @@ class Simulator {
 
 		gameReady = new Watchable<>(Boolean.FALSE);
 
+		int port;
 		while (true) {
 			try {
-				port = new Random().nextInt(60000) + 5000;
-				server = new ServerSocket(port);
+				port = new Random().nextInt(60000) + 5000;  // Find an open port from 5000 to 65000 (exclusive)
+				server = new SimulatorSocketServer(port, agents);
+				serverWeb = new SimulatorWebSocketServer(port + 1, agents);
+				server.start();
+				serverWeb.start();
 				break;
 			} catch (IOException ignored) {
 			}
 		}
-
-		log.d(0, String.format("Server is running on port %d", port));
 
 		messageHandler = new Thread(() -> {
 			try {
@@ -54,29 +55,13 @@ class Simulator {
 		});
 		messageHandler.start();
 
-		while (simulating) {
-			try {
-				Socket socket = server.accept();
-				new Thread(() -> {  // TODO Use thread pool
-					try {
-						UUID id = UUID.randomUUID();
-						log.d(0, String.format("A new client has been connected. (UUID: %s)", id.toString()));
-						Agent agent = new Agent(socket, id);
-						agents.put(id, agent);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}).start();
-			} catch (IOException ignored) {
-			}
-		}
-
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			log.d(0, "Shutting down the simulator...");
 			simulating = false;
 			try {
-				server.close();
-			} catch (IOException ignored) {
+				server.stop();
+				serverWeb.stop();
+			} catch (IOException | InterruptedException ignored) {
 			}
 			try {
 				messageHandler.join();
@@ -127,7 +112,7 @@ class Simulator {
 				if (message.length == 2) {
 					int side = Integer.parseInt(message[1]);
 					if (players[side] == null) {
-						agent.setPlayer(true, side);
+						agent.setPlayer(side);
 						players[side] = agent.id;
 						log.d(0, String.format("Player %d is set.", agent.side));
 						checkGameReady();
