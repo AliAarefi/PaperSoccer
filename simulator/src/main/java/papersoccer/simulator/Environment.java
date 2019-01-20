@@ -24,25 +24,21 @@ public class Environment {
 		board = new int[width * height][width * height];
 		turn = ServerMessage.turn_of_bottom_player;
 
-		// filling board edges in adjacency matrix, exploration based on upper triangular matrix but filling all cells
-		for (int i = 0; i < width * height; i++)
-			for (int j = i; j < width * height; j++) {
+		// Filling board edges in adjacency matrix, exploration based on upper triangular matrix but filling all cells
+		for (int i = 0; i < width * height; ++i)
+			for (int j = i; j < width * height; ++j) {
 				if (j - i == width && i % width == 0) {  // left edge
-					board[i][j] = 1;
-					board[j][i] = 1;
+					board[i][j] = board[j][i] = 1;
 				} else if (j - i == width && i % width == width - 1) {  // right edge
-					board[i][j] = 1;
-					board[j][i] = 1;
+					board[i][j] = board[j][i] = 1;
 				} else if (j - i == 1 && j < width) {  // top edge
 					if (j == width / 2 || j == width / 2 + 1)
 						continue;
-					board[i][j] = 1;
-					board[j][i] = 1;
+					board[i][j] = board[j][i] = 1;
 				} else if (j - i == 1 && j > width * (height - 1)) {  // bottom edge
 					if (j == width * (height - 1) + width / 2 || j == width * (height - 1) + width / 2 + 1)
 						continue;
-					board[i][j] = 1;
-					board[j][i] = 1;
+					board[i][j] = board[j][i] = 1;
 				}
 			}
 
@@ -50,11 +46,7 @@ public class Environment {
 	}
 
 	boolean doAction(int source, int destination) {
-		if (finished)
-			return false;
-		if (source != ballPosition)
-			return false;
-		if (source == destination)
+		if (finished || source != ballPosition || source == destination)
 			return false;
 
 		// to handle goal nodes:
@@ -79,15 +71,13 @@ public class Environment {
 				finishTheGame();
 				return true;
 			}
-		}
-
-		if (destination < 0 || destination > height * width - 1)  // out of range (goal nodes excepted before)
+		} else if (destination < 0 || destination > height * width - 1)  // out of range
 			return false;
 
 		// to handle corners:
 		int[] corners = {0, width - 1, width * (height - 1), width * height - 1};
 		int[] legalSourceForEachCorner = {width + 1, 2 * width, width * (height - 2) + 1, width * height - width - 2};
-		for (int i = 0; i < corners.length; i++) {
+		for (int i = 0; i < corners.length; ++i) {
 			// if source placed on one of corners
 			if (source == corners[i])
 				return false;
@@ -101,6 +91,7 @@ public class Environment {
 				} else return false;
 			}
 		}
+
 		// to handle edges and center nodes
 		String sourceArea;
 		if (source > 0 && source < width - 1)  // top edge nodes
@@ -146,17 +137,13 @@ public class Environment {
 	}
 
 	int calculateDegreeOfNode(int nodeID) {
-		int summation = 0;
-		for (int i = 0; i < height * width; i++) {
-			summation += board[nodeID][i];
-		}
-		return summation;
+		return Arrays.stream(board[nodeID]).parallel().sum();
 	}
 
 	String convertToString() {
 		StringBuilder result = new StringBuilder();
-		for (int i = 0; i < width * height; i++) {
-			for (int j = 0; j < width * height; j++)
+		for (int i = 0; i < width * height; ++i) {
+			for (int j = 0; j < width * height; ++j)
 				result.append(board[i][j]).append(' ');
 			result.append('\n');
 		}
@@ -183,15 +170,11 @@ public class Environment {
 	}
 
 	private void setTurn() {
-		if (isDivari(ballPosition)) {
-			if (calculateDegreeOfNode(ballPosition) == 5)
-				turn = ServerMessage.game_finished;
-			else return;
-		}
-		if (calculateDegreeOfNode(ballPosition) < 2)
-			turn = getAnotherPlayerTurn();
-		if (calculateDegreeOfNode(ballPosition) == 8)
+		int degree = calculateDegreeOfNode(ballPosition);
+		if (degree == 8 || (degree == 5 && isDivari(ballPosition)))
 			turn = ServerMessage.game_finished;
+		else if (degree < 2)
+			turn = getAnotherPlayerTurn();
 	}
 
 	private boolean isDivari(int position) {
