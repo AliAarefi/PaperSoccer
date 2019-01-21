@@ -87,6 +87,8 @@ class Simulator {
 	private void start() {
 		environment.clear();
 		gameRunning = true;
+		turn = whoseTurnIsIt(environment.getTurn());
+		broadcastGameToAll();
 	}
 
 	void startWhenReady() {
@@ -118,12 +120,12 @@ class Simulator {
 				break;
 
 			case ClientMessage.join_request:
-				if (gameRunning && message.length == 2) {
-					int side = Integer.parseInt(message[1]);
+				if (!gameRunning && message.length == 2) {
+					int side = Integer.parseInt(message[1]) - 1;
 					if (players[side] == null) {
 						agent.setPlayer(side);
 						players[side] = agent.id;
-						log.d(0, String.format("Agent %s is set to player %d.", agent.id.toString(), agent.side));
+						log.d(0, String.format("Agent %s is set to player %d.", agent.id.toString(), agent.side + 1));
 						checkGameReady();
 					} else {
 						if (players[players.length - 1 - side] == null)
@@ -152,10 +154,7 @@ class Simulator {
 						agent.send(ServerMessage.action_accepted);
 						log.d(0, String.format("Agent %s acted.", agent.id.toString()));
 						turn = whoseTurnIsIt(environment.getTurn());
-
-						// Broadcast world, ballPosition & turn
-						for (Agent ag : agents.values())
-							broadcastGame(ag);
+						broadcastGameToAll();
 						break;
 					}
 				}
@@ -164,13 +163,15 @@ class Simulator {
 		}
 	}
 
+	private void broadcastGameToAll() {
+		agents.values().parallelStream().forEach(this::broadcastGame);
+	}
+
 	private void broadcastGame(Agent agent) {
-		agent.send(ServerMessage.world_broadcast);
-		agent.send(environment.convertToString());
-		agent.send(ServerMessage.ball_position_broadcast);
-		agent.send(Integer.toString(environment.getBallPosition()));
-		agent.send(ServerMessage.turn_broadcast);
-		agent.send(turn);
+		// Broadcast world, ballPosition & turn
+		agent.send(ServerMessage.world_broadcast + " " + environment.convertToString());
+		agent.send(ServerMessage.ball_position_broadcast + " " + environment.getBallPosition());
+		agent.send(ServerMessage.turn_broadcast + " " + turn);
 	}
 
 	private String whoseTurnIsIt(String envTurn) {

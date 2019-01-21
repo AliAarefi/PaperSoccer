@@ -5,6 +5,8 @@ import papersoccer.common.ServerMessage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Environment {
 	private int width, height;
@@ -12,6 +14,7 @@ public class Environment {
 	private int ballPosition;
 	private boolean finished;
 	private String turn;
+	private String worldCache = null;
 
 	public Environment(int x, int y) {
 		if ((x | y) % 2 == 1) return;  // Both x and y have to be even (number of squares in rows & columns)
@@ -23,6 +26,7 @@ public class Environment {
 		finished = false;
 		board = new int[width * height][width * height];
 		turn = ServerMessage.turn_of_bottom_player;
+		worldCache = null;
 
 		// Filling board edges in adjacency matrix, exploration based on upper triangular matrix but filling all cells
 		for (int i = 0; i < width * height; ++i)
@@ -85,6 +89,7 @@ public class Environment {
 			if (destination == corners[i]) {
 				if (source == legalSourceForEachCorner[i]) {
 					board[source][destination] = board[destination][source] = 1;
+					worldCache = null;
 					ballPosition = destination;
 					finishTheGame();
 					return true;
@@ -106,6 +111,7 @@ public class Environment {
 			sourceArea = "center";
 		if (checkMovementValidity(source, destination, sourceArea)) {
 			board[source][destination] = board[destination][source] = 1;
+			worldCache = null;
 			ballPosition = destination;
 			setTurn();
 			return true;
@@ -141,13 +147,15 @@ public class Environment {
 	}
 
 	String convertToString() {
-		StringBuilder result = new StringBuilder();
-		for (int i = 0; i < width * height; ++i) {
-			for (int j = 0; j < width * height; ++j)
-				result.append(board[i][j]).append(' ');
-			result.append('\n');
+		if (worldCache == null) {
+			StringBuilder result = new StringBuilder();
+			for (int i = 0; i < width * height; ++i)
+				result.append(IntStream.of(board[i])
+						.mapToObj(Integer::toString)
+						.collect(Collectors.joining(" "))).append('\n');
+			worldCache = result.toString().trim();
 		}
-		return result.toString();
+		return worldCache;
 	}
 
 	int getBallPosition() {
