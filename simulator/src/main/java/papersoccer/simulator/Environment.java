@@ -197,4 +197,8 @@ public class Environment {
 			return true;
 		return position > 0 && position < width - 1;  // on top edge
 	}
+
+	public String getDimensions() {
+		return height + " " + width;
+	}
 }

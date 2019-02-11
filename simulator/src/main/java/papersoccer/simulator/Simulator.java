@@ -116,7 +116,7 @@ class Simulator {
 				if (message.length == 2) {
 					// TODO check username uniqueness
 					agent.username = message[1];
-					agent.send(ServerMessage.authentication_approved);
+					agent.send(ServerMessage.authentication_approved + " " + environment.getDimensions());
 					log.d(0, String.format("Agent %s successfully authenticated.", agent.id.toString()));
 					if (gameRunning)
 						broadcastGame(agent);
