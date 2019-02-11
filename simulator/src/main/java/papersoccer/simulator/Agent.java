@@ -7,7 +7,7 @@ abstract class Agent<Socket> {
 	String username;
 	final UUID id;
 	private boolean player = false;
-	int side;
+	int side = -1;
 
 	Agent(Socket s, UUID uuid) {
 		id = uuid;
@@ -17,6 +17,11 @@ abstract class Agent<Socket> {
 	void setPlayer(int side) {
 		this.player = true;
 		this.side = side;
+	}
+
+	void unsetPlayer() {
+		this.player = false;
+		this.side = -1;
 	}
 
 	boolean isPlayer() {
