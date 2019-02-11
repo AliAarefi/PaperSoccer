@@ -28,5 +28,5 @@ abstract class Agent<Socket> {
 		return player;
 	}
 
-	abstract void send(String s);
+	abstract boolean send(String s);
 }

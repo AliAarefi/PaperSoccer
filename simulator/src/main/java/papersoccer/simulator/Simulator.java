@@ -28,6 +28,7 @@ class Simulator {
 	Simulator(int number_of_players) {
 		agents = new ConcurrentHashMap<>();
 		players = new UUID[number_of_players];
+		// TODO set a game uuid to support resuming in client side
 
 		gameReady = new Watchable<>(Boolean.FALSE);
 
@@ -133,9 +134,9 @@ class Simulator {
 						log.d(0, String.format("Agent %s is set to player %d.", agent.id.toString(), agent.side + 1));
 						checkGameReady();
 					} else {
-						if (players[players.length - 1 - side] == null)
+						if (players[players.length - 1 - side] == null)  // FIXME Unknown error for later use (error but players not full)
 							agent.send(ServerMessage.join_failed);
-						else
+						else  // FIXME This is wrong but works for the moment
 							agent.send(ServerMessage.error_players_full);
 					}
 					break;

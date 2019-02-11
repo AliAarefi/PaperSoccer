@@ -31,7 +31,8 @@ class SocketAgent extends Agent<Socket> {
 	}
 
 	@Override
-	void send(String s) {
+	boolean send(String s) {
 		pw.println(s);
+		return true;
 	}
 }
