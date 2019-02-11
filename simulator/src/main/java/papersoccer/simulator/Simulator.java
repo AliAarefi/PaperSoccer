@@ -93,6 +93,7 @@ class Simulator {
 
 	private void pause() {
 		gameRunning = false;
+		broadcastPauseToAll();
 	}
 
 	void startWhenReady() {
@@ -146,10 +147,8 @@ class Simulator {
 				agent.send(ServerMessage.leave_accepted);
 				players[agent.side] = null;
 				agent.unsetPlayer();
-				if (gameRunning) {
+				if (gameRunning)
 					pause();
-					broadcastPauseToAll();
-				}
 				log.d(0, String.format("Agent %s left the game.", agent.id.toString()));
 				break;
 
