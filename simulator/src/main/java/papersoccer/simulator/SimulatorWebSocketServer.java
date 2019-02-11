@@ -3,6 +3,7 @@ package papersoccer.simulator;
 import org.java_websocket.server.WebSocketServer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
+import papersoccer.common.ClientMessage;
 import papersoccer.common.Logger;
 
 import java.io.IOException;
@@ -31,11 +32,11 @@ public class SimulatorWebSocketServer extends WebSocketServer {
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
 		UUID id = UUID.randomUUID();
-		log.d(0, String.format("A new agent has been connected. (UUID: %s)", id.toString()));
 		try {
 			Agent agent = new WebSocketAgent(conn, id);
 			agents.put(id, agent);
 			agentsBySocket.put(conn, (WebSocketAgent) agent);
+			log.d(0, String.format("A new agent has been connected. (UUID: %s)", id.toString()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -44,8 +45,10 @@ public class SimulatorWebSocketServer extends WebSocketServer {
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		WebSocketAgent dead = agentsBySocket.remove(conn);
+		if (dead.isPlayer())
+			MessageQueue.getInstance().add(new Message(dead.id, ClientMessage.leave_request));
+		MessageQueue.getInstance().add(new Message(dead.id, ClientMessage.disconnected));
 		log.d(0, String.format("Agent %s has been disconnected.", dead.id.toString()));
-		agents.remove(dead.id);
 	}
 
 	@Override

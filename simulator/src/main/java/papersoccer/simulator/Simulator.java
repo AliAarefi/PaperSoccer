@@ -91,6 +91,10 @@ class Simulator {
 		broadcastGameToAll();
 	}
 
+	private void pause() {
+		gameRunning = false;
+	}
+
 	void startWhenReady() {
 		gameReady.setWatcher((obj, oldValue, newValue) -> {
 			if (newValue == Boolean.TRUE) start();
@@ -139,12 +143,12 @@ class Simulator {
 				break;
 
 			case ClientMessage.leave_request:
-				if (gameRunning) {
-					agent.send(ServerMessage.leave_accepted);
-					log.d(0, String.format("Agent %s left the game.", agent.id.toString()));
-					break;
-				}
-				agent.send(ServerMessage.leave_failed);
+				agent.send(ServerMessage.leave_accepted);
+				players[agent.side] = null;
+				agent.unsetPlayer();
+				pause();
+				broadcastPauseToAll();
+				log.d(0, String.format("Agent %s left the game.", agent.id.toString()));
 				break;
 
 			case ClientMessage.action_request:
@@ -160,11 +164,18 @@ class Simulator {
 				}
 				agent.send(ServerMessage.action_failed);
 				break;
+
+			case ClientMessage.disconnected:
+				agents.remove(agent.id);
 		}
 	}
 
 	private void broadcastGameToAll() {
 		agents.values().parallelStream().forEach(this::broadcastGame);
+	}
+
+	private void broadcastPauseToAll() {
+		agents.values().parallelStream().forEach(agent -> agent.send(ServerMessage.game_paused));
 	}
 
 	private void broadcastGame(Agent agent) {
