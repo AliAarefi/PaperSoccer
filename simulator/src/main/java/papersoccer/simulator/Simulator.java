@@ -146,8 +146,10 @@ class Simulator {
 				agent.send(ServerMessage.leave_accepted);
 				players[agent.side] = null;
 				agent.unsetPlayer();
-				pause();
-				broadcastPauseToAll();
+				if (gameRunning) {
+					pause();
+					broadcastPauseToAll();
+				}
 				log.d(0, String.format("Agent %s left the game.", agent.id.toString()));
 				break;
 
